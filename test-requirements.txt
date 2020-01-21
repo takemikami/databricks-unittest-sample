@@ -1,0 +1,4 @@
+flake8==3.7.9
+mypy==0.761
+pyspark-stubs==2.4.0.post6
+pytest==5.3.1

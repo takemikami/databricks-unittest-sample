@@ -1,0 +1,68 @@
+name: pyspark application
+
+on: [push]
+
+env:
+  SPARK_VERSION: 2.4.3
+  HADOOP_VERSION: 2.7
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Cache spark modules
+        id: cache_spark
+        uses: actions/cache@v1
+        with:
+          path: ~/.apache-spark
+          key: spark-${{ env.SPARK_VERSION }}-hadoop${{ env.HADOOP_VERSION }}
+          restore-keys: |
+            spark-${{ env.SPARK_VERSION }}-hadoop${{ env.HADOOP_VERSION }}
+
+      - name: Set up Spark
+        if: steps.cache_spark.outputs.cache-hit != 'true'
+        run: |
+          SPARK_TGZ=spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION.tgz
+          mkdir -p ~/.apache-spark
+          cd ~/.apache-spark
+          wget https://archive.apache.org/dist/spark/spark-$SPARK_VERSION/$SPARK_TGZ
+          tar zxf $SPARK_TGZ
+
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+
+      - name: Cache python modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-python-${{ hashFiles('**/requirements.txt') }}-${{ hashFiles('**/test-requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r test-requirements.txt
+
+      - name: Lint with flake8
+        run: |
+          pip install flake8
+          flake8 .
+
+      - name: Lint with mypy
+        run: |
+          pip install mypy
+          mypy .
+
+      - name: Test with pytest
+        run: |
+          export SPARK_HOME=~/.apache-spark/spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION
+          pip install pytest
+          pytest
