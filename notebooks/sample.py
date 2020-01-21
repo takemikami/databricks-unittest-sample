@@ -1,19 +1,16 @@
+# import spark-context and databricks stub / for unit testing
+from stub import dbutils
+from stub import display
+import pyspark.sql
+
+spark = pyspark.sql.SparkSession.builder.appName('local').getOrCreate()
+
 # COMMAND ----------
+
 import time
 import os
 from typing import Any
 from pyspark.sql import DataFrame
-
-# import spark-context and databricks stub / for unit testing
-if 'spark' not in globals():
-  from stub import dbutils
-  from stub import display
-  import pyspark.sql
-
-  spark = pyspark.sql.SparkSession.builder.appName('local').getOrCreate()
-  unit_testing = True
-
-# COMMAND ----------
 
 # define utility functions
 def checkpoint(process: Any, file: str) -> DataFrame:
@@ -39,6 +36,6 @@ def main() -> None:
   ], ["id", "body"])
   display(dataset)
 
-if 'unit_testing' not in locals():
+if __name__ == '__main__':
   # execute main
   main()

@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="notebooks" pattern="file[databricks-unittest-sample]:notebooks/*" />
+</component>
